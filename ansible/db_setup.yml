@@ -1,0 +1,31 @@
+- name: Configure MongoDB Server
+  hosts: db
+  become: true
+
+  tasks:
+    - name: Install MongoDB
+      shell: |
+        echo "[mongodb-org-6.0]
+        name=MongoDB Repository
+        baseurl=https://repo.mongodb.org/yum/amazon/2/mongodb-org/6.0/x86_64/
+        gpgcheck=1
+        enabled=1
+        gpgkey=https://www.mongodb.org/static/pgp/server-6.0.asc" > /etc/yum.repos.d/mongodb-org-6.0.repo
+        yum install -y mongodb-org
+
+    - name: Start MongoDB
+      service:
+        name: mongod
+        state: started
+        enabled: yes
+
+    - name: Enable remote access
+      lineinfile:
+        path: /etc/mongod.conf
+        regexp: '^  bindIp:'
+        line: '  bindIp: 0.0.0.0'
+
+    - name: Restart MongoDB
+      service:
+        name: mongod
+        state: restarted
